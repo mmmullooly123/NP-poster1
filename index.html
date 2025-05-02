@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuNP-Peptide Interaction Poster</title>
+
+  <!-- TailwindCSS for layout and styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Animate On Scroll (AOS) CSS -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+
+  <!-- GLightbox CSS for zoomable media -->
+  <link href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" rel="stylesheet" />
+
+  <!-- NGL Viewer for interactive 3D structure -->
+  <script src="https://unpkg.com/ngl@latest/dist/ngl.js"></script>
+
+  <style>
+    body {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 font-sans">
+
+  <!-- HEADER -->
+  <header class="text-center py-12 px-4 bg-gray-100">
+    <h1 class="text-4xl font-bold mb-2">Exploring the Design Space of Peptide-Mediated Reversible Nanoparticle Aggregation</h1>
+    <p class="text-lg">Margaret Mullooly · 2025</p>
+  </header>
+
+  <!-- MOTIVATION SECTION -->
+  <section class="max-w-3xl mx-auto py-12 px-4" data-aos="fade-up">
+    <h2 class="text-2xl font-semibold mb-4">Motivation</h2>
+    <p class="text-lg">
+      Gold nanoparticles (AuNPs) are widely used in diagnostics and therapeutics due to their unique optical and chemical properties. However, their tendency to aggregate in solution can compromise performance. This project explores how peptide sequence and terminal ends affects reversible aggregation of citrate-capped AuNPs using molecular simulations.
+    </p>
+  </section>
+
+  <!-- SIMULATION VIDEO SECTION -->
+  <section class="bg-gray-50 py-12 px-4" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-semibold mb-4">Simulation Snapshot</h2>
+      <a href="assets/vmd_movie.mp4" class="glightbox" data-type="video">
+        <video class="w-full rounded shadow-md" autoplay muted loop playsinline>
+          <source src="assets/vmd_movie.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </a>
+    </div>
+  </section>
+
+  <!-- 3D STRUCTURE VIEWER SECTION -->
+  <section class="py-12 px-4" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-semibold mb-4">Interactive Structure</h2>
+      <div id="viewport" style="width: 100%; height: 400px; border: 1px solid #ccc;"></div>
+    </div>
+  </section>
+
+  <!-- POSTER IMAGE SECTION -->
+  <section class="bg-gray-100 py-12 px-4" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-semibold mb-4">View the Full Poster</h2>
+      <a href="assets/poster.png" class="glightbox">
+        <img src="assets/poster.png" alt="Full Research Poster" class="w-full rounded shadow-md">
+      </a>
+    </div>
+  </section>
+
+  <!-- ACKNOWLEDGMENTS SECTION -->
+  <section class="max-w-3xl mx-auto py-12 px-4" data-aos="fade-up">
+    <h2 class="text-2xl font-semibold mb-4">Acknowledgments</h2>
+    <p class="text-sm">
+      NSF CBET-2335597 · ACCESS NNT240007 · Closser Lab · Jokerst Lab · Pascal Lab · UC San Diego · CSU Fresno
+    </p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="text-center text-sm py-6 text-gray-500">
+    &copy; 2025 Margaret Mullooly · Built with HTML, TailwindCSS, NGL, and AOS
+  </footer>
+
+  <!-- External Scripts -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+
+  <!-- Initialize AOS and GLightbox -->
+  <script>
+    AOS.init();
+    const myLightbox = window.__myLightboxInstance || GLightbox({ selector: '.glightbox' });
+    window.__myLightboxInstance = myLightbox;
+  </script>
+</body>
+</html>
