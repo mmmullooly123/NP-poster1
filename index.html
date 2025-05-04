@@ -222,7 +222,7 @@
         <!-- RR Movie -->
         <div>
           <h3 class="text-lg font-semibold mb-2">RR Dipeptide (Induces Aggregation)</h3>
-          <video controls controlsList="nodownload" muted class="w-full rounded">
+          <video controls controlsList="nodownload" muted autoplay playsinline class="w-full rounded">
             <source src="assets/rr_movie_shorter.mp4" type="video/mp4">
             Your browser does not support the video tag.
           </video>
@@ -230,7 +230,7 @@
         <!-- GG Movie -->
         <div>
           <h3 class="text-lg font-semibold mb-2">GG Dipeptide (No Aggregation)</h3>
-          <video controls controlsList="nodownload" muted class="w-full rounded">
+          <video controls controlsList="nodownload" muted autoplay playsinline class="w-full rounded">
             <source src="assets/gg_movie_shorter.mp4" type="video/mp4">
             Your browser does not support the video tag.
           </video>
@@ -570,6 +570,8 @@
                 font: { size: 12 },
                 padding: { top: 10, bottom: 10, left: 0, right: 12 }
               },
+              min: 0,
+              max: 0.007,
               ticks: {
                 font: { size: 10 }
               },
