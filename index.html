@@ -200,7 +200,7 @@
         <!-- RR Movie -->
         <div>
           <h3 class="text-lg font-semibold mb-2">RR Dipeptide (Induces Aggregation)</h3>
-          <video controls autoplay loop muted class="w-full rounded">
+          <video controls controlsList="nodownload" muted class="w-full rounded">
             <source src="assets/rr_movie_shorter.mp4" type="video/mp4">
             Your browser does not support the video tag.
           </video>
@@ -208,7 +208,7 @@
         <!-- GG Movie -->
         <div>
           <h3 class="text-lg font-semibold mb-2">GG Dipeptide (No Aggregation)</h3>
-          <video controls autoplay loop muted class="w-full rounded">
+          <video controls controlsList="nodownload" muted class="w-full rounded">
             <source src="assets/gg_movie_shorter.mp4" type="video/mp4">
             Your browser does not support the video tag.
           </video>
@@ -312,7 +312,9 @@
       <p class="text-lg text-gray-600 mb-6">
         Compare molecular dynamics calculated binding energy results with experimental aggregation behavior.
       </p>
-      <canvas id="comparisonChart" class="w-full max-w-3xl mx-auto mb-6"></canvas>
+      <div class="w-full max-w-3xl mx-auto mb-6 h-80 sm:h-auto">
+        <canvas id="comparisonChart" class="w-full h-full"></canvas>
+      </div>
       <p class="text-sm text-gray-500">Lower C₅₀ = easier aggregation; Lower inverse binding energy = stronger binding.</p>
     </div>
   </section>
@@ -495,8 +497,10 @@
 
     function renderPeptideCarousel() {
       if (!carouselTrack) return;
-      const start = carouselPageIndex * 3;
-      const visiblePeptides = peptides.slice(start, start + 3);
+      const isMobile = window.innerWidth <= 768;
+      const visibleCount = isMobile ? 1 : 3;
+      const start = carouselPageIndex * visibleCount;
+      const visiblePeptides = peptides.slice(start, start + visibleCount);
       carouselTrack.innerHTML = "";
       visiblePeptides.forEach((pep, index) => {
         const card = document.createElement("div");
@@ -538,13 +542,15 @@
     }
 
     function showNextPeptides() {
-      if ((carouselPageIndex + 1) * 3 < peptides.length) {
+      const visibleCount = window.innerWidth <= 768 ? 1 : 3;
+      if ((carouselPageIndex + 1) * visibleCount < peptides.length) {
         carouselPageIndex++;
         renderPeptideCarousel();
       }
     }
 
     function showPreviousPeptides() {
+      const visibleCount = window.innerWidth <= 768 ? 1 : 3;
       if (carouselPageIndex > 0) {
         carouselPageIndex--;
         renderPeptideCarousel();
