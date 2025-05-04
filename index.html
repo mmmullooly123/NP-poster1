@@ -242,16 +242,14 @@
         <p class="text-lg mb-4">Choose your peptide to begin!</p>
         <div id="peptideCarousel" class="relative w-full my-6 py-6 overflow-visible">
           <button onclick="showPreviousPeptides()"
-            class="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition"
-            style="left: -5rem;">
+            class="absolute top-1/2 -translate-y-1/2 z-[9999] bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition left-4 md:left-[-5rem]">
             ‹
           </button>
           <div class="grid md:grid-cols-3 gap-6 justify-items-center overflow-visible flex md:grid justify-center" id="peptideCarouselTrack">
             <!-- Cards inserted dynamically -->
           </div>
           <button onclick="showNextPeptides()"
-            class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition"
-            style="right: -5rem; z-index: 50;">
+            class="absolute top-1/2 -translate-y-1/2 z-50 bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition right-4 md:right-[-5rem]">
             ›
           </button>
         </div>
