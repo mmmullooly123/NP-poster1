@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet" />
   <title>AuNP-Peptide Interaction Poster</title>
 
   <!-- TailwindCSS for layout and styling -->
@@ -17,70 +18,450 @@
   <!-- NGL Viewer for interactive 3D structure -->
   <script src="https://unpkg.com/ngl@latest/dist/ngl.js"></script>
 
+  <!-- Mol viewer setup -->
+  <script src="https://unpkg.com/ngl@latest/dist/ngl.js"></script>
+
   <style>
+    canvas#heroCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
     body {
       scroll-behavior: smooth;
+      font-family: 'Manrope', sans-serif;
+      background: linear-gradient(to bottom right, #f9fafb, #e5e7eb);
+    }
+    h1 {
+      background: linear-gradient(to right, #6b21a8, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    details summary {
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+    /* --- Drop Animation Styles --- */
+    /* --- Glow effect for centered peptide card --- */
+    .card-glow {
+      box-shadow: 0 0 12px 4px rgba(139, 92, 246, 0.6);
+      border: 2px solid rgba(139, 92, 246, 0.8);
+    }
+    .drop {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #6b21a8;
+      border-radius: 9999px;
+      opacity: 0.8;
+      animation: dropAnim 0.8s ease-out forwards;
+      z-index: 20;
+    }
+    .drop.peg {
+      background-color: #059669;
+    }
+    @keyframes dropAnim {
+      0% {
+        transform: translateY(-20px) scale(0.5);
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(40px) scale(1.2);
+        opacity: 0;
+      }
+    }
+    /* --- Sparkle Overlay Effect --- */
+    .sparkle {
+      background-image: radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px);
+      background-size: 10px 10px;
+      animation: sparkleAnim 1s ease-in-out;
+    }
+    @keyframes sparkleAnim {
+      0% { background-position: 0 0; opacity: 1; }
+      100% { background-position: 100% 100%; opacity: 0; }
+    }
+
+    /* --- Ensure #npOverlay displays correctly --- */
+    #npOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
     }
   </style>
+  <script>
+    // Helper for brief drop effect in test tube
+    function triggerDrop(type) {
+      const parent = document.getElementById('testTube');
+      const drop = document.createElement('div');
+      drop.className = 'drop' + (type === 'peg' ? ' peg' : '');
+      drop.style.left = `${Math.random() * 60 + 10}px`;
+      parent.appendChild(drop);
+      setTimeout(() => drop.remove(), 1000);
+    }
+  </script>
 </head>
 <body class="bg-white text-gray-900 font-sans">
 
-  <!-- HEADER -->
-  <header class="text-center py-12 px-4 bg-gray-100">
-    <h1 class="text-4xl font-bold mb-2">Exploring the Design Space of Peptide-Mediated Reversible Nanoparticle Aggregation</h1>
-    <p class="text-lg">Margaret Mullooly · 2025</p>
-  </header>
+  <div class="relative z-0">
+    <canvas id="heroCanvas" class="pointer-events-none z-0"></canvas>
 
-  <!-- MOTIVATION SECTION -->
-  <section class="max-w-3xl mx-auto py-12 px-4" data-aos="fade-up">
-    <h2 class="text-2xl font-semibold mb-4">Motivation</h2>
-    <p class="text-lg">
-      Gold nanoparticles (AuNPs) are widely used in diagnostics and therapeutics due to their unique optical and chemical properties. However, their tendency to aggregate in solution can compromise performance. This project explores how peptide sequence and terminal ends affects reversible aggregation of citrate-capped AuNPs using molecular simulations.
+    <!-- WELCOME SLIDE -->
+    <section class="h-screen flex flex-col justify-center items-center text-center px-4" data-aos="fade-up">
+      <div class="flex flex-col items-center justify-center gap-8 w-full max-w-5xl mx-auto">
+        <div class="text-center space-y-4 max-w-4xl mx-auto">
+          <div class="bg-white px-4 py-2 rounded-md shadow-sm inline-block">
+            <h1 class="text-5xl font-extrabold text-purple-900 drop-shadow-xl leading-tight max-w-3xl mx-auto">
+              Exploring the design space of peptide-mediated reversible nanoparticle aggregation
+            </h1>
+          </div>
+          <p class="text text-gray-700">Research by Margaret Mullooly, Robert Ramji, William Brown, Benjamin Lam, Jesse Jokerst, Tod Pascal, Kristina Closser</p>
+          <p class="text text-gray-700">Website by Margaret Mullooly · 2025</p>
+        </div>
+      </div>
+      <!--
+      <h1 class="text-4xl font-bold mb-4">Exploring the design space of peptide-mediated reversible nanoparticle aggregation</h1>
+      <p class="text-lg mb-4">Margaret Mullooly · 2025</p>
+      <p class="text-gray-600 text-sm">Explore the science</p>
+      -->
+    </section>
+  </div>
+
+  <div style="position: relative; z-index: 1; background-color: white;">
+
+  <!-- PROBLEM SECTION -->
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8 text-center" data-aos="fade-up">
+    <h2 class="text-2xl font-semibold mb-4">Background and Motivation - Why Does This Matter?</h2>
+    <p class="text-lg mb-6 max-w-2xl mx-auto">
+      Gold nanoparticles (AuNPs) change color when they aggregate — this property powers many biosensors. If we can control how that aggregation happens, we can design better tools for real-world detection. Click to read more.
     </p>
-  </section>
-
-  <!-- SIMULATION VIDEO SECTION -->
-  <section class="bg-gray-50 py-12 px-4" data-aos="fade-up">
-    <div class="max-w-4xl mx-auto">
-      <h2 class="text-2xl font-semibold mb-4">Simulation Snapshot</h2>
-      <a href="assets/vmd_movie.mp4" class="glightbox" data-type="video">
-        <video class="w-full rounded shadow-md" autoplay muted loop playsinline>
-          <source src="assets/vmd_movie.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+    <div class="flex flex-col md:flex-row items-center justify-center gap-6 mb-6">
+      <ul class="text-left max-w-xl space-y-4 text-lg">
+        <li>
+          <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6631916/" target="_blank" class="block p-4 rounded-lg shadow-md bg-purple-100 hover:bg-purple-200 transition-colors">
+             <span class="font-medium">· Colorimetric chemical biosensors using AuNPs</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8646453/" target="_blank" class="block p-4 rounded-lg shadow-md bg-blue-100 hover:bg-blue-200 transition-colors">
+             <span class="font-medium">· COVID-19 antigen detection</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://www.researchgate.net/publication/23399579_Gold_Nanoparticle_as_an_Alternative_Tool_for_a_Urine_Pregnancy_Test" target="_blank" class="block p-4 rounded-lg shadow-md bg-pink-100 hover:bg-pink-200 transition-colors">
+             <span class="font-medium">· Pregnancy testing</span>
+          </a>
+        </li>
+        <li>
+          <a href="https://www.mdpi.com/1424-8220/18/12/4166" target="_blank" class="block p-4 rounded-lg shadow-md bg-green-100 hover:bg-green-200 transition-colors">
+             <span class="font-medium">· Rapid food safety screening</span>
+          </a>
+        </li>
+      </ul>
+      <a href="https://www.researchgate.net/publication/373553743_Goldilocks_Energy_Minimum_Peptide-Based_Reversible_Aggregation_and_Biosensing" target="_blank">
+        <img src="assets/NPagg.png" alt="Nanoparticle Aggregation" class="w-72 md:w-96 rounded shadow-md">
       </a>
     </div>
   </section>
 
-  <!-- 3D STRUCTURE VIEWER SECTION -->
-  <section class="py-12 px-4" data-aos="fade-up">
-    <div class="max-w-4xl mx-auto">
-      <h2 class="text-2xl font-semibold mb-4">Interactive Structure</h2>
-      <div id="viewport" style="width: 100%; height: 400px; border: 1px solid #ccc;"></div>
+  <!-- STRUCTURE GENERATION WORKFLOW -->
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8 text-center" data-aos="fade-up">
+    <h2 class="text-2xl font-semibold mb-4">Structure Generation Workflow</h2>
+    <p class="text-lg text-gray-600 mb-6">How molecular dynamics systems are built from the ground up.</p>
+    <div class="relative max-w-md mx-auto">
+      <div id="workflowCarousel" class="flex justify-center items-center">
+        <img id="workflowImage" src="assets/step1.png" alt="Workflow Step" class="max-h-90 w-auto rounded transition duration-500">
+      </div>
+      <p id="workflowDescription" class="mt-4 text-sm text-gray-600">Start with a single AuNP (This one is ~4000 atoms).</p>
+      <div class="flex justify-between mt-4">
+        <button onclick="prevWorkflowStep()" class="px-4 py-2 rounded-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 transition-shadow shadow-sm">←</button>
+        <button onclick="nextWorkflowStep()" class="px-4 py-2 rounded-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 transition-shadow shadow-sm">→</button>
+      </div>
     </div>
   </section>
 
+  <!-- SIMULATION COMPARISON SECTION -->
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8" data-aos="fade-up" data-aos-duration="800" data-aos-easing="ease-in-out">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-2xl font-semibold mb-6">See It in Action: Peptide-Mediated Aggregation</h2>
+      <p class="text-lg mb-10">
+        These two simulations demonstrate how charged positively charged peptides like arginine-arginine (RR) promote gold nanoparticle aggregation, while neutral peptide glycine-glycine (GG) does not.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- RR Movie -->
+        <div>
+          <h3 class="text-lg font-semibold mb-2">RR Dipeptide (Induces Aggregation)</h3>
+          <video controls autoplay loop muted class="w-full rounded">
+            <source src="assets/rr_movie_shorter.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <!-- GG Movie -->
+        <div>
+          <h3 class="text-lg font-semibold mb-2">GG Dipeptide (No Aggregation)</h3>
+          <video controls autoplay loop muted class="w-full rounded">
+            <source src="assets/gg_movie_shorter.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE AGGREGATION DEMO -->
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8 text-center" data-aos="fade-up" data-aos-duration="800" data-aos-easing="ease-in-out">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-semibold mb-6">Interactive: Experiment With Peptide-Mediated Aggregation</h2>
+      <!-- Game Start Container: Peptide Carousel Selector -->
+      <div id="gameStartContainer" class="text-center">
+        <p class="text-lg mb-4">Choose your peptide to begin!</p>
+        <div id="peptideCarousel" class="relative w-full my-6 py-6 overflow-visible">
+          <button onclick="showPreviousPeptides()"
+            class="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition"
+            style="left: -5rem;">
+            ‹
+          </button>
+          <div class="grid grid-cols-3 gap-6 justify-items-center overflow-visible" id="peptideCarouselTrack">
+            <!-- Cards inserted dynamically -->
+          </div>
+          <button onclick="showNextPeptides()"
+            class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition"
+            style="right: -5rem; z-index: 50;">
+            ›
+          </button>
+        </div>
+      </div>
+      <!-- Interaction Section: Test tube and slider (initially hidden) -->
+      <div id="testTubeSection" class="hidden flex flex-col md:flex-row items-center justify-center mt-12 gap-10 scale-105">
+        <!-- Test tube and overlay -->
+        <div class="relative w-28 h-52 flex items-end justify-center bg-white border-4 border-gray-400 rounded-b-full shadow-inner overflow-hidden mb-4 md:mb-0"
+          id="testTubeContainer"
+          style="box-shadow:inset 0 -6px 12px rgba(0,0,0,0.10),0 8px 16px rgba(160,160,180,0.08); background:radial-gradient(ellipse at top,#f3f4f6 60%,#e5e7eb 100%);">
+          <div id="testTube" class="w-20 h-48 bg-red-500 rounded-b-full transition-all duration-500 shadow-lg" style="box-shadow:0 2px 8px 0 rgba(120,0,80,0.09);"></div>
+          <div class="absolute bottom-0 w-full h-6 bg-gray-300 blur-sm opacity-30 rounded-full"></div>
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-32 h-10 bg-gray-200 border-4 border-gray-400 rounded-t-full shadow-inner opacity-80 z-10"
+               style="box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1);"></div>
+          <!-- Nanoparticle overlays (if needed) -->
+          <div id="npOverlay" style="position: absolute; pointer-events: none;"></div>
+        </div>
+        <!-- Selected Peptide Card -->
+        <div id="selectedPeptideCard" class="hidden bg-white rounded-xl shadow-lg p-4 w-48 border border-purple-400 transform hover:scale-105 transition-all">
+          <h3 id="cardName" class="font-bold text-lg mb-2 text-purple-700"></h3>
+          <div id="selectedMolView" class="w-full h-32 rounded border"></div>
+          <p id="cardC50" class="text-sm text-gray-500 mt-2"></p>
+        </div>
+        <!-- Controls (slider, label, buttons) -->
+        <div class="flex flex-col items-center mt-4 md:mt-0">
+          <label for="peptideRange" class="mb-2 font-medium">
+            <span id="sliderLabel">Peptide Concentration:</span> <span id="concentrationLabel">0</span> µM
+          </label>
+          <input type="range" id="peptideRange" min="0" max="2" value="0" step="0.01" class="w-64 accent-purple-600">
+          <button onclick="saveCurrentTube()" class="mt-4 px-4 py-2 text-xs font-semibold bg-gradient-to-r from-blue-300 to-blue-500 hover:from-blue-400 hover:to-blue-600 text-blue-900 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
+            + Add Test Tube to Bench
+          </button>
+          <button onclick="resetAggregation()" class="mt-2 px-4 py-2 text-xs font-semibold bg-gradient-to-r from-red-300 to-red-500 hover:from-red-400 hover:to-red-600 text-red-900 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
+            ✨ Add PEG-Thiol
+            <span class="text-xs text-green-900 font-normal">(Reverse Aggregation)</span>
+          </button>
+        </div>
+      </div>
+      <!-- Bench Display: Saved test tubes (initially hidden) -->
+      <div class="mt-8 bg-gray-50 p-4 rounded-xl shadow-inner border border-gray-200 hidden scale-90" id="benchSection">
+        <h3 class="text-xl font-semibold text-center text-gray-700 mb-4">Your Lab Bench</h3>
+        <div id="benchDisplay" class="flex flex-wrap justify-center gap-6">
+          <!-- Test tubes added here -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BINDING ENERGY SECTION -->
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8 text-center" data-aos="fade-up" data-aos-duration="800">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-semibold mb-4">Simulation Results: Binding Energy & Aggregation</h2>
+      <p class="text-lg text-gray-600 mb-6">
+        The deeper the energy well, the stronger the peptide binds — making aggregation more likely.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+        <div>
+          <img src="assets/freeEnergy1.png" alt="Free Energy Curve 1" class="rounded border shadow h-64 object-contain" />
+          <p class="text-sm text-gray-500 mt-2"></p>
+        </div>
+        <div>
+          <img src="assets/freeEnergy2.png" alt="Free Energy Curve 2" class="rounded border shadow h-64 object-contain" />
+          <p class="text-sm text-gray-500 mt-2"></p>
+        </div>
+      </div>
+      <p class="mt-6 text-base text-gray-700"><strong>Free energy minimum = binding strength</strong><br/>Strong binding (deeper well) drives aggregation, while shallow curves (like GG) show little to no interaction.</p>
+    </div>
+  </section>
+
+  <!-- SIMULATION VS EXPERIMENT COMPARISON -->
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8 text-center" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-2xl font-semibold mb-4">Simulation vs. Experimental Results</h2>
+      <p class="text-lg text-gray-600 mb-6">
+        Compare molecular dynamics calculated binding energy results with experimental aggregation behavior.
+      </p>
+      <canvas id="comparisonChart" class="w-full max-w-3xl mx-auto mb-6"></canvas>
+      <p class="text-sm text-gray-500">Lower C₅₀ = easier aggregation; Lower inverse binding energy = stronger binding.</p>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+
+    // Create stripe pattern for simulated data
+    const patternCanvas = document.createElement('canvas');
+    patternCanvas.width = 10;
+    patternCanvas.height = 10;
+    const pctx = patternCanvas.getContext('2d');
+    pctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+    pctx.lineWidth = 2;
+    pctx.beginPath();
+    pctx.moveTo(0, 10);
+    pctx.lineTo(10, 0);
+    pctx.stroke();
+    const stripePattern = comparisonCtx.createPattern(patternCanvas, 'repeat');
+
+    const peptideLabels = ['RR', 'RH', 'RK', 'HH', 'HK', 'HR', 'KK', 'KH', 'KR'];
+    const c50Values = [0.34, 0.95, 0.19, 0.97, 0.14, 0.14, 0.16, 0.98, 0.16];
+    const inverseBinding = [0.0023, 0.0037, 0.0023, 0.0066, 0.0014, 0.0030, 0.0026, 0.0035, 0.0020];
+
+    new Chart(comparisonCtx, {
+      type: 'bar',
+      data: {
+        labels: peptideLabels,
+        datasets: [
+          {
+            label: 'Experimental C₅₀ (µM)',
+            data: c50Values,
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.7)', // RR
+              'rgba(239, 68, 68, 0.7)', // RH
+              'rgba(239, 68, 68, 0.7)', // RK
+              'rgba(59, 130, 246, 0.7)', // HH
+              'rgba(59, 130, 246, 0.7)', // HK
+              'rgba(59, 130, 246, 0.7)', // HR
+              'rgba(34, 197, 94, 0.7)', // KK
+              'rgba(34, 197, 94, 0.7)', // KH
+              'rgba(34, 197, 94, 0.7)', // KR
+            ],
+            yAxisID: 'y',
+          },
+          {
+            label: 'Inverse Binding Energy (kcal/mol)⁻¹',
+            data: inverseBinding,
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.3)', // RR
+              'rgba(239, 68, 68, 0.3)', // RH
+              'rgba(239, 68, 68, 0.3)', // RK
+              'rgba(59, 130, 246, 0.3)', // HH
+              'rgba(59, 130, 246, 0.3)', // HK
+              'rgba(59, 130, 246, 0.3)', // HR
+              'rgba(34, 197, 94, 0.3)', // KK
+              'rgba(34, 197, 94, 0.3)', // KH
+              'rgba(34, 197, 94, 0.3)', // KR
+            ],
+            borderColor: 'rgba(100, 100, 100, 0.9)',
+            borderWidth: 1,
+            borderDash: [4, 2],
+            yAxisID: 'y1',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        stacked: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Comparison of Aggregation Sensitivity and Binding Energy'
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            position: 'left',
+            title: {
+              display: true,
+              text: 'C₅₀ (µM)'
+            },
+            grid: {
+              drawOnChartArea: false
+            }
+          },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Inverse Binding Energy'
+            },
+            grid: {
+              drawOnChartArea: false
+            }
+          }
+        }
+      }
+    });
+  </script>
+
+
   <!-- POSTER IMAGE SECTION -->
-  <section class="bg-gray-100 py-12 px-4" data-aos="fade-up">
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8" data-aos="fade-up" data-aos-duration="800" data-aos-easing="ease-in-out">
     <div class="max-w-4xl mx-auto">
       <h2 class="text-2xl font-semibold mb-4">View the Full Poster</h2>
       <a href="assets/poster.png" class="glightbox">
-        <img src="assets/poster.png" alt="Full Research Poster" class="w-full rounded shadow-md">
+        <img src="assets/poster.png" alt="Full Research Poster" class="w-full rounded">
       </a>
     </div>
   </section>
 
-  <!-- ACKNOWLEDGMENTS SECTION -->
-  <section class="max-w-3xl mx-auto py-12 px-4" data-aos="fade-up">
-    <h2 class="text-2xl font-semibold mb-4">Acknowledgments</h2>
-    <p class="text-sm">
-      NSF CBET-2335597 · ACCESS NNT240007 · Closser Lab · Jokerst Lab · Pascal Lab · UC San Diego · CSU Fresno
+  <!-- PUBLICATION SECTION -->
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8" data-aos="fade-up">
+    <div class="max-w-3xl mx-auto">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <img src="assets/frontPage.png" alt="Front Page" class="w-full md:w-1/2 rounded shadow-md">
+        <div class="md:w-1/2 text-left space-y-4">
+          <h2 class="text-2xl font-semibold">Interested in Learning More?</h2>
+          <p class="text-lg text-gray-700">Read our latest publication on how peptides influence gold nanoparticle assembly.</p>
+          <a href="https://www.researchgate.net/publication/390992276_Mechanism_of_Cationic_Peptide-Induced_Assembly_of_Gold_Nanoparticles_Modulation_of_Electrostatic_Repulsion" target="_blank" class="inline-block px-6 py-3 bg-purple-600 text-white font-semibold rounded hover:bg-purple-700 transition">
+            Read the Publication
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT SECTION -->
+  <section class="bg-white rounded-lg shadow-lg p-8 my-8 text-center" data-aos="fade-up">
+    <h2 class="text-2xl font-semibold mb-4">Thanks and Acknowledgments</h2>
+    <p class="text-sm text-gray-600">NSF CBET-2335597 · ACCESS NNT240007 · University of California, San Diego · California State University, Fresno</p>
+    <p class="text-sm text-gray-600 mt-2"> 
+      <a href="https://jjokerst.eng.ucsd.edu/" target="_blank" class="text-blue-600 hover:underline">Jokerst Lab</a> · 
+      <a href="https://kclosser.wixsite.com/research" target="_blank" class="text-blue-600 hover:underline">Closser Lab</a> · 
+      <a href="https://cmp.ucsd.edu/" target="_blank" class="text-blue-600 hover:underline">Pascal Lab</a>
     </p>
   </section>
 
   <!-- FOOTER -->
   <footer class="text-center text-sm py-6 text-gray-500">
-    &copy; 2025 Margaret Mullooly · Built with HTML, TailwindCSS, NGL, and AOS
+    &copy; 2025 <a href="https://www.linkedin.com/in/MargaretCodes/" target="_blank" class="text-blue-600 hover:underline">Margaret Mullooly</a> · Built with HTML, TailwindCSS, NGL, and AOS · 
   </footer>
 
   <!-- External Scripts -->
@@ -93,5 +474,526 @@
     const myLightbox = window.__myLightboxInstance || GLightbox({ selector: '.glightbox' });
     window.__myLightboxInstance = myLightbox;
   </script>
+
+  <script>
+    // Peptide data
+    const peptides = [
+      { name: "RR", c50: 0.3383, c100: 0.6766, mol2: "assets/rr.mol2", fullName: "Arginine-Arginine" },
+      { name: "RH", c50: 0.9537, c100: 1.9074, mol2: "assets/rh.mol2", fullName: "Arginine-Histidine" },
+      { name: "RK", c50: 0.1890, c100: 0.3780, mol2: "assets/rk.mol2", fullName: "Arginine-Lysine" },
+      { name: "HH", c50: 0.9731, c100: 1.9462, mol2: "assets/hh.mol2", fullName: "Histidine-Histidine" },
+      { name: "HK", c50: 0.1406, c100: 0.2812, mol2: "assets/hk.mol2", fullName: "Histidine-Lysine" },
+      { name: "HR", c50: 0.1388, c100: 0.2776, mol2: "assets/hr.mol2", fullName: "Histidine-Arginine" },
+      { name: "KK", c50: 0.1577, c100: 0.3154, mol2: "assets/kk.mol2", fullName: "Lysine-Lysine" },
+      { name: "KH", c50: 0.9774, c100: 1.9548, mol2: "assets/kh.mol2", fullName: "Lysine-Histidine" },
+      { name: "KR", c50: 0.1598, c100: 0.3196, mol2: "assets/kr.mol2", fullName: "Lysine-Arginine" }
+    ];
+
+    // Carousel pagination logic
+    let carouselPageIndex = 0;
+    const carouselTrack = document.getElementById("peptideCarouselTrack");
+
+    function renderPeptideCarousel() {
+      if (!carouselTrack) return;
+      const start = carouselPageIndex * 3;
+      const visiblePeptides = peptides.slice(start, start + 3);
+      carouselTrack.innerHTML = "";
+      visiblePeptides.forEach((pep, index) => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-xl p-6 text-center w-72 h-72 transform transition-transform duration-300 hover:scale-105 hover:shadow-xl z-50";
+        card.setAttribute('data-name', pep.name);
+        card.innerHTML = `<h3 class="font-bold mb-1 text-lg">${pep.name}</h3><p class="text-xs text-gray-500 mb-2">${pep.fullName}</p>`;
+
+        const moleculeDiv = document.createElement("div");
+        moleculeDiv.id = `mol-${pep.name}`;
+        moleculeDiv.className = "w-full h-40 md:h-48 mb-4 rounded border";
+        card.appendChild(moleculeDiv);
+
+        const label = document.createElement("p");
+        label.className = "text-sm text-gray-500";
+        label.textContent = `C₅₀: ${pep.c50.toFixed(2)} µM`;
+        card.appendChild(label);
+
+        const btn = document.createElement("button");
+        btn.className = "mt-2 text-xs bg-purple-100 hover:bg-purple-200 rounded px-2 py-1";
+        btn.textContent = "Select";
+        btn.onclick = () => selectPeptide(pep.name);
+        card.appendChild(btn);
+
+        carouselTrack.appendChild(card);
+
+        setTimeout(() => {
+          const stage = new NGL.Stage(`mol-${pep.name}`, { backgroundColor: "white" });
+          stage.loadFile(pep.mol2).then(component => {
+            component.addRepresentation("ball+stick", {
+              multipleBond: true,
+              colorScheme: "element"
+            });
+            stage.autoView();
+            stage.setSpin(true);
+            stage.zoom(2.5); // Adjust zoom level to make molecule appear larger
+          });
+        }, 0);
+      });
+    }
+
+    function showNextPeptides() {
+      if ((carouselPageIndex + 1) * 3 < peptides.length) {
+        carouselPageIndex++;
+        renderPeptideCarousel();
+      }
+    }
+
+    function showPreviousPeptides() {
+      if (carouselPageIndex > 0) {
+        carouselPageIndex--;
+        renderPeptideCarousel();
+      }
+    }
+
+    // Initialize carousel on page load
+    renderPeptideCarousel();
+  </script>
+
+  <script>
+    function togglePopup() {
+      const popup = document.getElementById("diagnosticsPopup");
+      popup.classList.toggle("hidden");
+    }
+  </script>
+
+  <script>
+    const range = document.getElementById('peptideRange');
+    const label = document.getElementById('concentrationLabel');
+    const testTube = document.getElementById('testTube');
+    // peptideType is not a select, but we use a hidden input for value keeping (for carousel)
+    let peptideType = document.getElementById('peptideType');
+    if (!peptideType) {
+      peptideType = document.createElement('input');
+      peptideType.type = 'hidden';
+      peptideType.id = 'peptideType';
+      peptideType.value = 'RR';
+      document.body.appendChild(peptideType);
+    }
+    const sliderLabel = document.getElementById('sliderLabel');
+    // For new single test tube, overlay NPs in testTubeContainer
+    function getOrCreateNpEls() {
+      let overlay = document.getElementById('npOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'npOverlay';
+        // Ensure overlay fills the test tube area
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        document.getElementById('testTubeContainer').appendChild(overlay);
+      }
+      // Ensure 10 balls
+      let npEls = Array.from(overlay.children);
+      while (npEls.length < 10) {
+        const d = document.createElement('div');
+        d.style.position = 'absolute';
+        d.style.width = '16px';
+        d.style.height = '16px';
+        d.style.borderRadius = '50%';
+        d.style.zIndex = 10;
+        // Glow styling for each nanoparticle
+        d.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.8)';
+        d.style.border = '1px solid rgba(255, 255, 255, 0.9)';
+        overlay.appendChild(d);
+        npEls.push(d);
+      }
+      return Array.from(overlay.children);
+    }
+
+// Frame data for nanoparticle positions/colors
+const frameData = {
+  0: [
+    { top: '10%', left: '10%', color: 'rgb(255,0,0)' },
+    { top: '10%', left: '70%', color: 'rgb(255,0,0)' },
+    { top: '70%', left: '10%', color: 'rgb(255,0,0)' },
+    { top: '70%', left: '70%', color: 'rgb(255,0,0)' },
+    { top: '40%', left: '25%', color: 'rgb(255,0,0)' },
+    { top: '25%', left: '40%', color: 'rgb(255,0,0)' },
+    { top: '55%', left: '60%', color: 'rgb(255,0,0)' },
+    { top: '60%', left: '40%', color: 'rgb(255,0,0)' },
+    { top: '30%', left: '60%', color: 'rgb(255,0,0)' },
+    { top: '55%', left: '20%', color: 'rgb(255,0,0)' }
+  ],
+  1: [
+    { top: '20%', left: '20%', color: 'rgb(240,0,30)' },
+    { top: '20%', left: '60%', color: 'rgb(240,0,30)' },
+    { top: '60%', left: '20%', color: 'rgb(240,0,30)' },
+    { top: '60%', left: '60%', color: 'rgb(240,0,30)' },
+    { top: '40%', left: '30%', color: 'rgb(255,0,0)' },
+    { top: '30%', left: '40%', color: 'rgb(255,0,0)' },
+    { top: '50%', left: '55%', color: 'rgb(255,0,0)' },
+    { top: '55%', left: '40%', color: 'rgb(255,0,0)' },
+    { top: '35%', left: '55%', color: 'rgb(255,0,0)' },
+    { top: '50%', left: '30%', color: 'rgb(255,0,0)' }
+  ],
+  2: [
+    { top: '30%', left: '30%', color: 'rgb(230,0,60)' },
+    { top: '30%', left: '50%', color: 'rgb(230,0,60)' },
+    { top: '50%', left: '30%', color: 'rgb(230,0,60)' },
+    { top: '50%', left: '50%', color: 'rgb(230,0,60)' },
+    { top: '40%', left: '35%', color: 'rgb(240,0,30)' },
+    { top: '35%', left: '40%', color: 'rgb(240,0,30)' },
+    { top: '45%', left: '50%', color: 'rgb(240,0,30)' },
+    { top: '50%', left: '45%', color: 'rgb(240,0,30)' },
+    { top: '38%', left: '50%', color: 'rgb(240,0,30)' },
+    { top: '45%', left: '35%', color: 'rgb(240,0,30)' }
+  ],
+  3: [
+    { top: '38%', left: '38%', color: 'rgb(200,0,100)' },
+    { top: '39%', left: '41%', color: 'rgb(200,0,100)' },
+    { top: '42%', left: '39%', color: 'rgb(200,0,100)' },
+    { top: '41%', left: '42%', color: 'rgb(200,0,100)' },
+    { top: '40%', left: '40%', color: 'rgb(230,0,60)' },
+    { top: '39%', left: '40%', color: 'rgb(230,0,60)' },
+    { top: '41%', left: '40%', color: 'rgb(230,0,60)' },
+    { top: '40%', left: '39%', color: 'rgb(230,0,60)' },
+    { top: '40%', left: '41%', color: 'rgb(230,0,60)' },
+    { top: '40%', left: '40%', color: 'rgb(230,0,60)' }
+  ],
+  4: [
+    { top: '40%', left: '40%', color: 'rgb(180,0,120)' },
+    { top: '41%', left: '41%', color: 'rgb(180,0,120)' },
+    { top: '42%', left: '42%', color: 'rgb(180,0,120)' },
+    { top: '43%', left: '43%', color: 'rgb(180,0,120)' },
+    { top: '41%', left: '39%', color: 'rgb(180,0,120)' },
+    { top: '39%', left: '41%', color: 'rgb(180,0,120)' },
+    { top: '39%', left: '39%', color: 'rgb(180,0,120)' },
+    { top: '42%', left: '38%', color: 'rgb(180,0,120)' },
+    { top: '38%', left: '42%', color: 'rgb(180,0,120)' },
+    { top: '40%', left: '40%', color: 'rgb(180,0,120)' }
+  ],
+  5: [
+    { top: '41%', left: '41%', color: 'rgb(160,0,150)' },
+    { top: '42%', left: '42%', color: 'rgb(160,0,150)' },
+    { top: '43%', left: '43%', color: 'rgb(160,0,150)' },
+    { top: '44%', left: '44%', color: 'rgb(160,0,150)' },
+    { top: '42%', left: '40%', color: 'rgb(160,0,150)' },
+    { top: '40%', left: '42%', color: 'rgb(160,0,150)' },
+    { top: '40%', left: '40%', color: 'rgb(160,0,150)' },
+    { top: '43%', left: '39%', color: 'rgb(160,0,150)' },
+    { top: '39%', left: '43%', color: 'rgb(160,0,150)' },
+    { top: '41%', left: '41%', color: 'rgb(160,0,150)' }
+  ],
+  6: [
+    { top: '42%', left: '42%', color: 'rgb(120,0,200)' },
+    { top: '43%', left: '43%', color: 'rgb(120,0,200)' },
+    { top: '44%', left: '44%', color: 'rgb(120,0,200)' },
+    { top: '45%', left: '45%', color: 'rgb(120,0,200)' },
+    { top: '43%', left: '41%', color: 'rgb(120,0,200)' },
+    { top: '41%', left: '43%', color: 'rgb(120,0,200)' },
+    { top: '41%', left: '41%', color: 'rgb(120,0,200)' },
+    { top: '44%', left: '40%', color: 'rgb(120,0,200)' },
+    { top: '40%', left: '44%', color: 'rgb(120,0,200)' },
+    { top: '42%', left: '42%', color: 'rgb(120,0,200)' }
+  ],
+  7: [
+    { top: '43%', left: '43%', color: 'rgb(90,0,220)' },
+    { top: '44%', left: '44%', color: 'rgb(90,0,220)' },
+    { top: '45%', left: '45%', color: 'rgb(90,0,220)' },
+    { top: '46%', left: '46%', color: 'rgb(90,0,220)' },
+    { top: '44%', left: '42%', color: 'rgb(90,0,220)' },
+    { top: '42%', left: '44%', color: 'rgb(90,0,220)' },
+    { top: '42%', left: '42%', color: 'rgb(90,0,220)' },
+    { top: '45%', left: '41%', color: 'rgb(90,0,220)' },
+    { top: '41%', left: '45%', color: 'rgb(90,0,220)' },
+    { top: '43%', left: '43%', color: 'rgb(90,0,220)' }
+  ],
+  8: [
+    { top: '44%', left: '44%', color: 'rgb(60,0,230)' },
+    { top: '45%', left: '45%', color: 'rgb(60,0,230)' },
+    { top: '46%', left: '46%', color: 'rgb(60,0,230)' },
+    { top: '47%', left: '47%', color: 'rgb(60,0,230)' },
+    { top: '45%', left: '43%', color: 'rgb(60,0,230)' },
+    { top: '43%', left: '45%', color: 'rgb(60,0,230)' },
+    { top: '43%', left: '43%', color: 'rgb(60,0,230)' },
+    { top: '46%', left: '42%', color: 'rgb(60,0,230)' },
+    { top: '42%', left: '46%', color: 'rgb(60,0,230)' },
+    { top: '44%', left: '44%', color: 'rgb(60,0,230)' }
+  ],
+  9: [
+    { top: '45%', left: '45%', color: 'rgb(0,0,255)' },
+    { top: '46%', left: '46%', color: 'rgb(0,0,255)' },
+    { top: '47%', left: '47%', color: 'rgb(0,0,255)' },
+    { top: '48%', left: '48%', color: 'rgb(0,0,255)' },
+    { top: '46%', left: '44%', color: 'rgb(0,0,255)' },
+    { top: '44%', left: '46%', color: 'rgb(0,0,255)' },
+    { top: '44%', left: '44%', color: 'rgb(0,0,255)' },
+    { top: '47%', left: '43%', color: 'rgb(0,0,255)' },
+    { top: '43%', left: '47%', color: 'rgb(0,0,255)' },
+    { top: '45%', left: '45%', color: 'rgb(0,0,255)' }
+  ]
+};
+
+// Initial frame
+updateFrame(0);
+
+// updateFrame for single test tube, 0–2.00 µM scale
+function updateFrame(sliderVal) {
+  const type = peptideType.value;
+  const peptide = peptides.find(p => p.name === type);
+  const simulatedConc = parseFloat(sliderVal).toFixed(2);
+  const fraction = simulatedConc / peptide.c100;
+  label.textContent = simulatedConc;
+  sliderLabel.textContent = `Peptide Concentration:`;
+  // update test tube color and NPs
+  const npEls = getOrCreateNpEls();
+  if (type === "GG") {
+    const color = frameData[0][0].color;
+    testTube.style.backgroundColor = color;
+    frameData[0].forEach((np, i) => {
+      const el = npEls[i];
+      el.style.top = np.top;
+      el.style.left = np.left;
+      el.style.backgroundColor = color;
+      el.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.8)';
+      el.style.border = '1px solid rgba(255, 255, 255, 0.9)';
+      el.style.display = '';
+    });
+    triggerDrop('peptide');
+    // Show/hide aggregation note if needed
+    const aggNote = document.getElementById('c50Note');
+    if (aggNote) aggNote.textContent = '';
+    return;
+  }
+  // For frame index, map 0-2.00 to 0-9
+  const frameIndex = Math.min(9, Math.round((simulatedConc / 2) * 9));
+  const frame = frameData[frameIndex];
+  if (!frame) return;
+  // Remove default tube color assignment here, it will be set by enhanced logic below
+  // Only clump a fraction of NPs proportional to concentration
+  const clumpedCount = Math.round((simulatedConc / peptide.c100) * 10);
+  npEls.forEach((el, i) => {
+    if (i < clumpedCount) {
+      const np = frame[i];
+      el.style.top = np.top;
+      el.style.left = np.left;
+      el.style.backgroundColor = np.color;
+    } else {
+      const np = frameData[0][i]; // use initial frame for dispersed
+      el.style.top = np.top;
+      el.style.left = np.left;
+      el.style.backgroundColor = frameData[0][i].color;
+    }
+    el.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.8)';
+    el.style.border = '1px solid rgba(255, 255, 255, 0.9)';
+    el.style.display = '';
+  });
+  triggerDrop('peptide');
+  // Enhanced color display and aggregation note logic
+  let aggNote = document.getElementById('c50Note');
+  if (!aggNote) {
+    aggNote = document.createElement('div');
+    aggNote.id = 'c50Note';
+    aggNote.className = 'text-sm text-purple-700 mt-2';
+    range.parentNode.appendChild(aggNote);
+  }
+  if (simulatedConc >= peptide.c100) {
+    testTube.style.backgroundColor = 'rgb(0,0,255)';
+    aggNote.textContent = '🔵 You’ve reached C₁₀₀ — 100% of NPs are aggregated!';
+  } else if (simulatedConc >= peptide.c50) {
+    testTube.style.backgroundColor = 'rgb(128,0,128)';
+    aggNote.textContent = '🧪 You’ve passed the C₅₀ — 50% of NPs are aggregated!';
+  } else {
+    // Use the frame color for color below C50
+    testTube.style.backgroundColor = frame[0].color;
+    aggNote.textContent = '';
+  }
+}
+
+range.addEventListener('input', () => {
+  updateFrame(range.value);
+});
+
+// Peptide carousel selector (game flow)
+function selectPeptide(type) {
+  peptideType.value = type;
+  range.value = 0;
+  updateFrame(0);
+  document.getElementById('gameStartContainer').classList.add('hidden');
+  document.getElementById('testTubeSection').classList.remove('hidden');
+
+  // Update peptide card
+  document.getElementById('selectedPeptideCard').classList.remove('hidden');
+  const pep = peptides.find(p => p.name === type);
+  document.getElementById('cardName').textContent = pep.name;
+  document.getElementById('cardC50').textContent = `C₅₀: ${pep.c50.toFixed(2)} µM`;
+  // Remove previous viewer if any
+  if (window._selectedMolViewStage) {
+    window._selectedMolViewStage.dispose();
+    window._selectedMolViewStage = null;
+  }
+  // NGL expects a div, but we use a canvas. We'll replace the canvas with a div for NGL.
+  const canvas = document.getElementById('selectedMolView');
+  const parent = canvas.parentNode;
+  const nglDiv = document.createElement('div');
+  nglDiv.id = 'selectedMolView';
+  nglDiv.className = canvas.className;
+  nglDiv.style.width = canvas.width ? canvas.width + 'px' : '100%';
+  nglDiv.style.height = canvas.height ? canvas.height + 'px' : '128px';
+  parent.replaceChild(nglDiv, canvas);
+  const viewer = new NGL.Stage("selectedMolView", { backgroundColor: "white" });
+  window._selectedMolViewStage = viewer;
+  viewer.loadFile(pep.mol2).then(comp => {
+    comp.addRepresentation("ball+stick", {
+      multipleBond: true,
+      colorScheme: "element"
+    });
+    viewer.autoView();
+    viewer.setSpin(true);
+  });
+}
+
+// Save current test tube to bench (enhanced styling and functionality)
+function saveCurrentTube() {
+  const testTubeContainer = document.getElementById('testTubeContainer');
+  const clone = testTubeContainer.cloneNode(true);
+  clone.className += " w-16 h-32 border-2 border-gray-300";
+  clone.style.transform = "scale(0.75)";
+
+  const concentration = parseFloat(document.getElementById('concentrationLabel').textContent);
+  const peptide = peptides.find(p => p.name === peptideType.value);
+  const percentAggregated = Math.min(100, Math.round((concentration / peptide.c100) * 100));
+
+  const labelDiv = document.createElement('div');
+  labelDiv.className = "text-xs text-center mt-1 text-gray-700 leading-snug";
+  labelDiv.innerHTML = `<strong>${peptideType.value}</strong><br>${concentration} µM<br>${percentAggregated}% NPs Aggregated`;
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = '✖';
+  deleteBtn.className = "absolute top-1 right-1 text-xs bg-red-200 hover:bg-red-300 text-red-800 px-1 rounded";
+  let wrapper = document.createElement('div');
+  wrapper.className = "relative flex flex-col items-center bg-white rounded-lg p-2 shadow border border-gray-300";
+  deleteBtn.onclick = function() {
+    wrapper.remove();
+    if (document.getElementById('benchDisplay').children.length === 0) {
+      document.getElementById('benchSection').classList.add('hidden');
+    }
+  };
+  wrapper.appendChild(deleteBtn);
+  wrapper.appendChild(clone);
+  wrapper.appendChild(labelDiv);
+
+  document.getElementById('benchDisplay').appendChild(wrapper);
+  document.getElementById('benchSection').classList.remove('hidden');
+
+  document.getElementById('testTubeSection').classList.add('hidden');
+  document.getElementById('gameStartContainer').classList.remove('hidden');
+}
+
+function resetAggregation() {
+  range.value = 0;
+  updateFrame(0);
+  triggerDrop('peg');
+  testTube.classList.add('sparkle');
+  setTimeout(() => testTube.classList.remove('sparkle'), 1000);
+}
+  </script>
+  <script>
+    const canvas = document.getElementById("heroCanvas");
+    const ctx = canvas.getContext("2d");
+    let width, height;
+    let particles = [];
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    class NP {
+      constructor(x, y) {
+        this.homeX = x;
+        this.homeY = y;
+        this.x = x;
+        this.y = y;
+        this.radius = 4;
+        this.color = "rgba(168, 85, 247, 0.7)";
+      }
+
+      update(mouse) {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 100) {
+          this.x += dx * 0.05;
+          this.y += dy * 0.05;
+        } else {
+          this.x += (this.homeX - this.x) * 0.05;
+          this.y += (this.homeY - this.y) * 0.05;
+        }
+      }
+
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < 100; i++) {
+        let x = Math.random() * width;
+        let y = Math.random() * height;
+        particles.push(new NP(x, y));
+      }
+    }
+
+    const mouse = { x: -1000, y: -1000 };
+    window.addEventListener("mousemove", (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p) => {
+        p.update(mouse);
+        p.draw(ctx);
+      });
+      requestAnimationFrame(animate);
+    }
+
+    initParticles();
+    animate();
+  </script>
+  </div>
 </body>
 </html>
+
+  <script>
+    const workflowSteps = [
+      { img: "assets/step1.png", desc: "Start with a single AuNP (This one is ~4000 atoms)." },
+      { img: "assets/step2.png", desc: "Add tri-sodium citrate to coat the surface. This protects the AuNP from self-aggregating." },
+      { img: "assets/step3.png", desc: "Duplicate the nanoparticle for interaction study." },
+      { img: "assets/step4.png", desc: "Introduce peptides for molecular dynamics simulation." }
+    ];
+    let workflowIndex = 0;
+
+    function updateWorkflowStep() {
+      const step = workflowSteps[workflowIndex];
+      document.getElementById("workflowImage").src = step.img;
+      document.getElementById("workflowDescription").textContent = step.desc;
+    }
+
+    function prevWorkflowStep() {
+      workflowIndex = (workflowIndex - 1 + workflowSteps.length) % workflowSteps.length;
+      updateWorkflowStep();
+    }
+
+    function nextWorkflowStep() {
+      workflowIndex = (workflowIndex + 1) % workflowSteps.length;
+      updateWorkflowStep();
+    }
+  </script>
