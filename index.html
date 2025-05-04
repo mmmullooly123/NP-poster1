@@ -22,6 +22,12 @@
   <script src="https://unpkg.com/ngl@latest/dist/ngl.js"></script>
 
   <style>
+    .workflow-img {
+      height: 320px;
+      width: auto;
+      object-fit: contain;
+      box-shadow: none !important;
+    }
     canvas#heroCanvas {
       position: absolute;
       top: 0;
@@ -195,7 +201,7 @@
     <p class="text-lg text-gray-600 mb-6">How molecular dynamics systems are built from the ground up.</p>
     <div class="relative max-w-md mx-auto">
       <div id="workflowCarousel" class="flex justify-center items-center">
-        <img id="workflowImage" src="assets/step1.png" alt="Workflow Step" class="max-h-90 w-auto rounded transition duration-500">
+        <img id="workflowImage" src="assets/step1.png" alt="Workflow Step" class="workflow-img transition duration-500">
       </div>
       <p id="workflowDescription" class="mt-4 text-sm text-gray-600">Start with a single AuNP (This one is ~4000 atoms).</p>
       <div class="flex justify-between mt-4">
@@ -327,33 +333,112 @@
         Compare molecular dynamics calculated binding energy results with experimental aggregation behavior.
       </p>
       <div class="w-full max-w-3xl mx-auto mb-2">
+        <!-- Desktop: full chart -->
         <canvas id="comparisonChart" class="w-full h-full block"></canvas>
+        <!-- Mobile: grouped charts -->
+        <div id="mobile-chart-controls" class="mt-4 mb-4 flex justify-center gap-2 md:hidden">
+          <button class="group-toggle-btn px-3 py-1 rounded bg-red-100 text-red-800 font-semibold focus:outline-none focus:ring-2 focus:ring-red-400" data-group="1">RR, RH, RK</button>
+          <button class="group-toggle-btn px-3 py-1 rounded bg-blue-100 text-blue-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400" data-group="2">HH, HK, HR</button>
+          <button class="group-toggle-btn px-3 py-1 rounded bg-green-100 text-green-800 font-semibold focus:outline-none focus:ring-2 focus:ring-green-400" data-group="3">KK, KH, KR</button>
+        </div>
+        <div id="chart-group-1" class="mobile-chart-group hidden">
+          <canvas id="comparisonChartGroup1" class="w-full h-full block"></canvas>
+        </div>
+        <div id="chart-group-2" class="mobile-chart-group hidden">
+          <canvas id="comparisonChartGroup2" class="w-full h-full block"></canvas>
+        </div>
+        <div id="chart-group-3" class="mobile-chart-group hidden">
+          <canvas id="comparisonChartGroup3" class="w-full h-full block"></canvas>
+        </div>
       </div>
+      <style>
+        @media screen and (max-width: 768px) and (orientation: portrait) {
+          #comparisonChart {
+            display: none !important;
+          }
+          .mobile-chart-group {
+            display: none;
+          }
+          .mobile-chart-group.active {
+            display: block;
+          }
+          #mobile-chart-controls {
+            display: flex !important;
+          }
+          canvas[id^="comparisonChartGroup"] {
+            height: 360px !important;
+            width: 100% !important;
+            max-width: 100%;
+            object-fit: contain;
+          }
+          .mobile-chart-group .chartjs-axis-title {
+            font-size: 11px;
+            padding: 10px;
+            white-space: nowrap;
+          }
+        }
+        @media screen and (min-width: 769px), screen and (orientation: landscape) {
+          #mobile-chart-controls,
+          .mobile-chart-group {
+            display: none !important;
+          }
+          #comparisonChart {
+            display: block !important;
+          }
+        }
+      </style>
       <p class="text-sm text-gray-500" style="margin-bottom: 0;">Lower C₅₀ = easier aggregation; Lower inverse binding energy = stronger binding.</p>
     </div>
   </section>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
-
-    // Create stripe pattern for simulated data
-    const patternCanvas = document.createElement('canvas');
-    patternCanvas.width = 10;
-    patternCanvas.height = 10;
-    const pctx = patternCanvas.getContext('2d');
-    pctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-    pctx.lineWidth = 2;
-    pctx.beginPath();
-    pctx.moveTo(0, 10);
-    pctx.lineTo(10, 0);
-    pctx.stroke();
-    const stripePattern = comparisonCtx.createPattern(patternCanvas, 'repeat');
-
+    // Chart data
     const peptideLabels = ['RR', 'RH', 'RK', 'HH', 'HK', 'HR', 'KK', 'KH', 'KR'];
     const c50Values = [0.34, 0.95, 0.19, 0.97, 0.14, 0.14, 0.16, 0.98, 0.16];
     const inverseBinding = [0.0023, 0.0037, 0.0023, 0.0066, 0.0014, 0.0030, 0.0026, 0.0035, 0.0020];
+    // Color groups for each peptide
+    const groupColors = [
+      'rgba(239, 68, 68, 0.7)', // RR
+      'rgba(239, 68, 68, 0.7)', // RH
+      'rgba(239, 68, 68, 0.7)', // RK
+      'rgba(59, 130, 246, 0.7)', // HH
+      'rgba(59, 130, 246, 0.7)', // HK
+      'rgba(59, 130, 246, 0.7)', // HR
+      'rgba(34, 197, 94, 0.7)', // KK
+      'rgba(34, 197, 94, 0.7)', // KH
+      'rgba(34, 197, 94, 0.7)', // KR
+    ];
+    const groupColorsLight = [
+      'rgba(239, 68, 68, 0.3)', // RR
+      'rgba(239, 68, 68, 0.3)', // RH
+      'rgba(239, 68, 68, 0.3)', // RK
+      'rgba(59, 130, 246, 0.3)', // HH
+      'rgba(59, 130, 246, 0.3)', // HK
+      'rgba(59, 130, 246, 0.3)', // HR
+      'rgba(34, 197, 94, 0.3)', // KK
+      'rgba(34, 197, 94, 0.3)', // KH
+      'rgba(34, 197, 94, 0.3)', // KR
+    ];
 
+    // Stripe pattern for simulated data
+    function getStripePattern(ctx) {
+      const patternCanvas = document.createElement('canvas');
+      patternCanvas.width = 10;
+      patternCanvas.height = 10;
+      const pctx = patternCanvas.getContext('2d');
+      pctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+      pctx.lineWidth = 2;
+      pctx.beginPath();
+      pctx.moveTo(0, 10);
+      pctx.lineTo(10, 0);
+      pctx.stroke();
+      return ctx.createPattern(patternCanvas, 'repeat');
+    }
+
+    // Full chart (desktop)
+    const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+    const stripePattern = getStripePattern(comparisonCtx);
     new Chart(comparisonCtx, {
       type: 'bar',
       data: {
@@ -362,33 +447,13 @@
           {
             label: 'Experimental C₅₀ (µM)',
             data: c50Values,
-            backgroundColor: [
-              'rgba(239, 68, 68, 0.7)', // RR
-              'rgba(239, 68, 68, 0.7)', // RH
-              'rgba(239, 68, 68, 0.7)', // RK
-              'rgba(59, 130, 246, 0.7)', // HH
-              'rgba(59, 130, 246, 0.7)', // HK
-              'rgba(59, 130, 246, 0.7)', // HR
-              'rgba(34, 197, 94, 0.7)', // KK
-              'rgba(34, 197, 94, 0.7)', // KH
-              'rgba(34, 197, 94, 0.7)', // KR
-            ],
+            backgroundColor: groupColors,
             yAxisID: 'y',
           },
           {
             label: 'Inverse Binding Energy (kcal/mol)⁻¹',
             data: inverseBinding,
-            backgroundColor: [
-              'rgba(239, 68, 68, 0.3)', // RR
-              'rgba(239, 68, 68, 0.3)', // RH
-              'rgba(239, 68, 68, 0.3)', // RK
-              'rgba(59, 130, 246, 0.3)', // HH
-              'rgba(59, 130, 246, 0.3)', // HK
-              'rgba(59, 130, 246, 0.3)', // HR
-              'rgba(34, 197, 94, 0.3)', // KK
-              'rgba(34, 197, 94, 0.3)', // KH
-              'rgba(34, 197, 94, 0.3)', // KR
-            ],
+            backgroundColor: groupColorsLight,
             borderColor: 'rgba(100, 100, 100, 0.9)',
             borderWidth: 1,
             borderDash: [4, 2],
@@ -434,6 +499,165 @@
           }
         }
       }
+    });
+
+    // --- Mobile: group charts ---
+    // Group 1: RR, RH, RK (0, 1, 2)
+    // Group 2: HH, HK, HR (3, 4, 5)
+    // Group 3: KK, KH, KR (6, 7, 8)
+    function makeGroupChart(ctx, groupIdxs, groupLabel, groupColors, groupColorsLight) {
+      // Pattern for simulated data
+      const pattern = getStripePattern(ctx);
+      return new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: groupIdxs.map(i => peptideLabels[i]),
+          datasets: [
+            {
+              label: 'Experimental C₅₀ (µM)',
+              data: groupIdxs.map(i => c50Values[i]),
+              backgroundColor: groupColors,
+              yAxisID: 'y',
+            },
+            {
+              label: 'Inverse Binding Energy (kcal/mol)⁻¹',
+              data: groupIdxs.map(i => inverseBinding[i]),
+              backgroundColor: groupColorsLight,
+              borderColor: 'rgba(100, 100, 100, 0.9)',
+              borderWidth: 1,
+              borderDash: [4, 2],
+              yAxisID: 'y1',
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          stacked: false,
+          plugins: {
+            title: {
+              display: true,
+              text: groupLabel
+            }
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              position: 'left',
+              title: {
+                display: true,
+                text: 'C₅₀ (µM)',
+                font: { size: 12 },
+                padding: { top: 10, bottom: 10, left: 12, right: 0 }
+              },
+              ticks: {
+                font: { size: 10 }
+              },
+              grid: {
+                drawOnChartArea: false
+              }
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Inverse Binding Energy',
+                font: { size: 12 },
+                padding: { top: 10, bottom: 10, left: 0, right: 12 }
+              },
+              ticks: {
+                font: { size: 10 }
+              },
+              grid: {
+                drawOnChartArea: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Only initialize mobile charts if on mobile, but for robustness, always initialize hidden
+    window.addEventListener('DOMContentLoaded', function() {
+      // Group 1
+      const ctx1 = document.getElementById('comparisonChartGroup1').getContext('2d');
+      makeGroupChart(
+        ctx1,
+        [0, 1, 2],
+        'RR, RH, RK: Aggregation and Binding',
+        groupColors.slice(0, 3),
+        groupColorsLight.slice(0, 3)
+      );
+      // Group 2
+      const ctx2 = document.getElementById('comparisonChartGroup2').getContext('2d');
+      makeGroupChart(
+        ctx2,
+        [3, 4, 5],
+        'HH, HK, HR: Aggregation and Binding',
+        groupColors.slice(3, 6),
+        groupColorsLight.slice(3, 6)
+      );
+      // Group 3
+      const ctx3 = document.getElementById('comparisonChartGroup3').getContext('2d');
+      makeGroupChart(
+        ctx3,
+        [6, 7, 8],
+        'KK, KH, KR: Aggregation and Binding',
+        groupColors.slice(6, 9),
+        groupColorsLight.slice(6, 9)
+      );
+
+      // Mobile chart toggle logic
+      function showChartGroup(groupNum) {
+        for (let i = 1; i <= 3; ++i) {
+          const el = document.getElementById('chart-group-' + i);
+          if (el) {
+            if (i === groupNum) {
+              el.classList.add('active');
+            } else {
+              el.classList.remove('active');
+            }
+          }
+        }
+      }
+      // Default to group 1
+      showChartGroup(1);
+      // Button events
+      document.querySelectorAll('.group-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const group = parseInt(btn.getAttribute('data-group'), 10);
+          showChartGroup(group);
+        });
+      });
+      // Optional: swipe gestures for mobile (basic)
+      let touchStartX = 0;
+      let currentGroup = 1;
+      const chartGroups = [1, 2, 3];
+      const groupContainerEls = chartGroups.map(i => document.getElementById('chart-group-' + i));
+      groupContainerEls.forEach(groupEl => {
+        if (groupEl) {
+          groupEl.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+          });
+          groupEl.addEventListener('touchend', function(e) {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(dx) > 40) {
+              if (dx < 0 && currentGroup < 3) {
+                currentGroup++;
+                showChartGroup(currentGroup);
+              } else if (dx > 0 && currentGroup > 1) {
+                currentGroup--;
+                showChartGroup(currentGroup);
+              }
+            }
+          });
+        }
+      });
     });
   </script>
 
