@@ -8,7 +8,7 @@ An interactive web poster presenting computational and experimental research on 
 
 ## About
 
-This project explores how dipeptides (RR, RH, RK, HH, HK, HR, KK, KH, KR) modulate the reversible aggregation of gold nanoparticles, combining molecular dynamics simulation with experimental results. The poster was built as an interactive single-page web app for the VDW Spring 2025 research presentation.
+This project explores how cationic dipeptides (RR, RH, RK, HH, HK, HR, KK, KH, KR) modulate the reversible aggregation of gold nanoparticles, combining molecular dynamics simulation with experimental results. The poster was built as an interactive single-page web app for presentation at the ACS Spring Meeting 2025 in San Diego.
 
 **Research by:** Margaret Mullooly, Robert Ramji, William Brown, Benjamin Lam, Jesse Jokerst, Tod Pascal, Kristina Closser
 
@@ -61,4 +61,4 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-> Note: the NGL Viewer requires files to be served over HTTP — opening `index.html` directly as a `file://` URL will not load the molecular structures.
+> Note: the NGL Viewer requires files to be served over HTTP — opening `index.html` directly, as a `file://` URL will not load the molecular structures.
