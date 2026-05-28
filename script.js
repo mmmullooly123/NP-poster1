@@ -53,7 +53,7 @@ function getStripePattern(ctx) {
 // Full chart (desktop)
 const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
 const stripePattern = getStripePattern(comparisonCtx);
-new Chart(comparisonCtx, {
+const comparisonChartInstance = new Chart(comparisonCtx, {
   type: 'bar',
   data: {
     labels: peptideLabels,
@@ -287,11 +287,25 @@ const peptides = [
 
 // --- Peptide carousel ---
 let carouselPageIndex = 0;
+let activeNGLStages = [];
 const carouselTrack = document.getElementById("peptideCarouselTrack");
+
+function getVisibleCount() {
+  return window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3;
+}
 
 function renderPeptideCarousel() {
   if (!carouselTrack) return;
-  const visibleCount = window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3;
+
+  // Dispose old NGL stages to free WebGL contexts
+  activeNGLStages.forEach(s => { try { s.dispose(); } catch(e) {} });
+  activeNGLStages = [];
+
+  const visibleCount = getVisibleCount();
+  // Clamp page index so it's never past the last valid page
+  const maxPage = Math.max(0, Math.ceil(peptides.length / visibleCount) - 1);
+  if (carouselPageIndex > maxPage) carouselPageIndex = maxPage;
+
   const start = carouselPageIndex * visibleCount;
   const visiblePeptides = peptides.slice(start, start + visibleCount);
   carouselTrack.innerHTML = "";
@@ -321,6 +335,7 @@ function renderPeptideCarousel() {
 
     setTimeout(() => {
       const stage = new NGL.Stage(`mol-${pep.name}`, { backgroundColor: "white" });
+      activeNGLStages.push(stage);
       stage.loadFile(pep.mol2).then(component => {
         component.addRepresentation("ball+stick", {
           multipleBond: true,
@@ -335,7 +350,7 @@ function renderPeptideCarousel() {
 }
 
 function showNextPeptides() {
-  const visibleCount = window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3;
+  const visibleCount = getVisibleCount();
   if ((carouselPageIndex + 1) * visibleCount < peptides.length) {
     carouselPageIndex++;
     renderPeptideCarousel();
@@ -343,7 +358,6 @@ function showNextPeptides() {
 }
 
 function showPreviousPeptides() {
-  const visibleCount = window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3;
   if (carouselPageIndex > 0) {
     carouselPageIndex--;
     renderPeptideCarousel();
@@ -351,6 +365,20 @@ function showPreviousPeptides() {
 }
 
 renderPeptideCarousel();
+
+// Re-render carousel on resize so card count and NGL viewers stay correct
+// Also resize the desktop comparison chart so it fills its container after resize
+let carouselResizeTimer;
+window.addEventListener("resize", () => {
+  // Immediately tell existing NGL stages to remeasure their container
+  activeNGLStages.forEach(s => { try { s.handleResize(); } catch(e) {} });
+  // Debounce the full re-render (fixes card count and page clamping)
+  clearTimeout(carouselResizeTimer);
+  carouselResizeTimer = setTimeout(() => {
+    renderPeptideCarousel();
+    comparisonChartInstance.resize();
+  }, 200);
+});
 
 // --- Diagnostics popup toggle ---
 function togglePopup() {
