@@ -195,7 +195,7 @@ function makeGroupChart(ctx, groupIdxs, groupLabel, groupColors, groupColorsLigh
 
 window.addEventListener('DOMContentLoaded', function() {
   const ctx1 = document.getElementById('comparisonChartGroup1').getContext('2d');
-  makeGroupChart(
+  const mobileChart1 = makeGroupChart(
     ctx1,
     [0, 1, 2],
     'RR, RH, RK: Aggregation and Binding',
@@ -203,7 +203,7 @@ window.addEventListener('DOMContentLoaded', function() {
     groupColorsLight.slice(0, 3)
   );
   const ctx2 = document.getElementById('comparisonChartGroup2').getContext('2d');
-  makeGroupChart(
+  const mobileChart2 = makeGroupChart(
     ctx2,
     [3, 4, 5],
     'HH, HK, HR: Aggregation and Binding',
@@ -211,13 +211,14 @@ window.addEventListener('DOMContentLoaded', function() {
     groupColorsLight.slice(3, 6)
   );
   const ctx3 = document.getElementById('comparisonChartGroup3').getContext('2d');
-  makeGroupChart(
+  const mobileChart3 = makeGroupChart(
     ctx3,
     [6, 7, 8],
     'KK, KH, KR: Aggregation and Binding',
     groupColors.slice(6, 9),
     groupColorsLight.slice(6, 9)
   );
+  const mobileChartRefs = { 1: mobileChart1, 2: mobileChart2, 3: mobileChart3 };
 
   function showChartGroup(groupNum) {
     for (let i = 1; i <= 3; ++i) {
@@ -225,6 +226,8 @@ window.addEventListener('DOMContentLoaded', function() {
       if (el) {
         if (i === groupNum) {
           el.classList.add('active');
+          // Resize after the browser repaints so Chart.js can measure the now-visible container
+          requestAnimationFrame(() => mobileChartRefs[i].resize());
         } else {
           el.classList.remove('active');
         }
@@ -288,13 +291,13 @@ const carouselTrack = document.getElementById("peptideCarouselTrack");
 
 function renderPeptideCarousel() {
   if (!carouselTrack) return;
-  const visibleCount = window.innerWidth <= 768 ? 1 : 3;
+  const visibleCount = window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3;
   const start = carouselPageIndex * visibleCount;
   const visiblePeptides = peptides.slice(start, start + visibleCount);
   carouselTrack.innerHTML = "";
   visiblePeptides.forEach((pep, index) => {
     const card = document.createElement("div");
-    card.className = "bg-white rounded-xl p-6 text-center w-72 h-72 transform transition-transform duration-300 hover:scale-105 hover:shadow-xl z-50";
+    card.className = "bg-white rounded-xl p-4 text-center w-full transform transition-transform duration-300 hover:scale-105 hover:shadow-xl z-50";
     card.setAttribute('data-name', pep.name);
     card.innerHTML = `<h3 class="font-bold mb-1 text-lg">${pep.name}</h3><p class="text-xs text-gray-500 mb-2">${pep.fullName}</p>`;
 
@@ -332,7 +335,7 @@ function renderPeptideCarousel() {
 }
 
 function showNextPeptides() {
-  const visibleCount = window.innerWidth <= 768 ? 1 : 3;
+  const visibleCount = window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3;
   if ((carouselPageIndex + 1) * visibleCount < peptides.length) {
     carouselPageIndex++;
     renderPeptideCarousel();
@@ -340,7 +343,7 @@ function showNextPeptides() {
 }
 
 function showPreviousPeptides() {
-  const visibleCount = window.innerWidth <= 768 ? 1 : 3;
+  const visibleCount = window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3;
   if (carouselPageIndex > 0) {
     carouselPageIndex--;
     renderPeptideCarousel();
@@ -675,14 +678,6 @@ const ctx = canvas.getContext("2d");
 let width, height;
 let particles = [];
 
-function resizeCanvas() {
-  width = canvas.width = window.innerWidth;
-  height = canvas.height = window.innerHeight;
-}
-
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
 class NP {
   constructor(x, y) {
     this.homeX = x;
@@ -724,6 +719,15 @@ function initParticles() {
   }
 }
 
+function resizeCanvas() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+  initParticles();
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
 const mouse = { x: -1000, y: -1000 };
 window.addEventListener("mousemove", (e) => {
   mouse.x = e.clientX;
@@ -739,7 +743,6 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
-initParticles();
 animate();
 
 // --- Workflow carousel ---

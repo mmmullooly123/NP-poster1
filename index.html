@@ -153,16 +153,16 @@
       <!-- Game Start Container: Peptide Carousel Selector -->
       <div id="gameStartContainer" class="text-center">
         <p class="text-lg mb-4">Choose your peptide to begin!</p>
-        <div id="peptideCarousel" class="relative w-full my-6 py-6 overflow-visible">
+        <div id="peptideCarousel" class="flex items-center gap-3 w-full my-6 py-6">
           <button onclick="showPreviousPeptides()"
-            class="absolute top-1/2 -translate-y-1/2 z-[9999] bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition left-4 md:left-[-5rem]">
+            class="flex-shrink-0 bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition z-50">
             ‹
           </button>
-          <div class="grid md:grid-cols-3 gap-6 justify-items-center overflow-visible flex md:grid justify-center" id="peptideCarouselTrack">
+          <div class="flex-1 grid sm:grid-cols-2 lg:grid-cols-3 gap-4" id="peptideCarouselTrack">
             <!-- Cards inserted dynamically -->
           </div>
           <button onclick="showNextPeptides()"
-            class="absolute top-1/2 -translate-y-1/2 z-50 bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition right-4 md:right-[-5rem]">
+            class="flex-shrink-0 bg-gray-100 border border-gray-300 text-xl font-bold text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 transition z-50">
             ›
           </button>
         </div>
@@ -219,11 +219,11 @@
         The deeper the energy well, the stronger the peptide binds — making aggregation more likely.
       </p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-        <div>
+        <div class="flex flex-col items-center">
           <img src="assets/freeEnergy1.png" alt="Free Energy Curve 1" class="rounded border shadow h-64 object-contain" />
           <p class="text-sm text-gray-500 mt-2"></p>
         </div>
-        <div>
+        <div class="flex flex-col items-center">
           <img src="assets/freeEnergy2.png" alt="Free Energy Curve 2" class="rounded border shadow h-64 object-contain" />
           <p class="text-sm text-gray-500 mt-2"></p>
         </div>
@@ -239,9 +239,9 @@
       <p class="text-lg text-gray-600 mb-6">
         Compare molecular dynamics calculated binding energy results with experimental aggregation behavior.
       </p>
-      <div class="w-full max-w-3xl mx-auto mb-2">
+      <div class="max-w-3xl mx-auto mb-2">
         <!-- Desktop: full chart -->
-        <canvas id="comparisonChart" class="w-full h-full block"></canvas>
+        <canvas id="comparisonChart" class="w-full block"></canvas>
         <!-- Mobile: grouped charts -->
         <div id="mobile-chart-controls" class="mt-4 mb-4 flex justify-center gap-2 md:hidden">
           <button class="group-toggle-btn px-3 py-1 rounded bg-red-100 text-red-800 font-semibold focus:outline-none focus:ring-2 focus:ring-red-400" data-group="1">RR, RH, RK</button>
